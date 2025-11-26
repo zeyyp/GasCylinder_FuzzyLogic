@@ -1,0 +1,68 @@
+FUNCTION_BLOCK Model
+
+
+VAR_INPUT   // Girdiler
+    sicaklik : REAL; 
+    hacim : REAL;    
+END_VAR
+
+
+VAR_OUTPUT   // Çıktılar
+    basinc : REAL;   
+END_VAR
+
+
+
+FUZZIFY sicaklik	// Sicaklik için Bulanıklaştırma (santıgrat)
+    TERM dusuk := trape -20 -20 0 20;
+    TERM normal := trian 0 20 35 ;
+    TERM yuksek := trian 20 35 50;
+    TERM cokYuksek := trape 35 50 55 55;
+END_FUZZIFY
+
+
+FUZZIFY hacim		// Hacim için Bulanıklaştırma (litre)
+    TERM kucuk := trape 10 10 20 40;
+    TERM orta := trian 20 40 60;
+    TERM buyuk := trape 40 60 70 70;
+END_FUZZIFY
+
+
+DEFUZZIFY basinc	// Çıktı Değişkeni Basinc için Durulama (bar)
+    TERM cokDusuk := trape 0 0 15 75;
+    TERM dusuk := trian 15 75 200;
+    TERM normal := trian 120 200 230;
+    TERM yuksek := trian 200 230 260;
+    TERM cokYuksek := trape 230 260 300 300;
+    
+    
+    METHOD : COG;   // Durulama metodu 
+    
+    DEFAULT := 180;	// kurallar çalışmazsa
+END_DEFUZZIFY
+
+
+
+RULEBLOCK No1
+    AND : MIN; 
+    ACT : MIN; 
+    ACCU : MAX; 
+    
+    RULE 1 : IF sicaklik IS dusuk AND hacim IS kucuk THEN basinc IS dusuk;
+    RULE 2 : IF sicaklik IS dusuk AND hacim IS orta THEN basinc IS cokDusuk;
+    RULE 3 : IF sicaklik IS dusuk AND hacim IS buyuk THEN basinc IS cokDusuk;
+
+	RULE 4 : IF sicaklik IS normal AND hacim IS kucuk THEN basinc IS normal;
+    RULE 5 : IF sicaklik IS normal AND hacim IS orta THEN basinc IS dusuk;
+    RULE 6 : IF sicaklik IS normal AND hacim IS buyuk THEN basinc IS dusuk;
+	
+    RULE 7 : IF sicaklik IS yuksek AND hacim IS kucuk THEN basinc IS yuksek;
+    RULE 8 : IF sicaklik IS yuksek AND hacim IS orta THEN basinc IS normal;
+    RULE 9 : IF sicaklik IS yuksek AND hacim IS buyuk THEN basinc IS normal;
+
+    RULE 10 : IF sicaklik IS cokYuksek AND hacim IS kucuk THEN basinc IS cokYuksek;
+    RULE 11 : IF sicaklik IS cokYuksek AND hacim IS orta THEN basinc IS yuksek;
+    RULE 12 : IF sicaklik IS cokYuksek AND hacim IS buyuk THEN basinc IS yuksek;
+END_RULEBLOCK
+
+END_FUNCTION_BLOCK
